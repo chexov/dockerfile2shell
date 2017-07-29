@@ -17,17 +17,21 @@ def parse_multiline(deq, prefix=""):
             prefix = prefix + "\n" + s
             s = nextline(deq)
         else:
-            return prefix + s
+            return prefix + "\n" + s
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Convert Dockerfile into shell script')
-    parser.add_argument('--copy-prefix-url', dest="copy_prefix", action="store")
-    parser.add_argument('--fail-on-unknown', dest="failfast", action="store_true", default=True)
+    parser.add_argument('--copy-prefix-url', help="http://myhost/static_folder/",
+            dest="copy_prefix", action="store")
+    parser.add_argument('--dockerfile', help="Alternative Dockerfile location",
+            action="store", default="Dockerfile")
+    parser.add_argument('--fail-on-unknown', dest="failfast",
+            help="Raise error if unkonwn docker command appears",
+            action="store_true", default=True)
     opts = parser.parse_args()
-    print opts
 
-    with open('Dockerfile', 'r') as df:
+    with open(opts.dockerfile, 'r') as df:
         cur_cmd = ""
         lines = collections.deque(map(lambda l: l.rstrip(), df.readlines()))
 
@@ -66,7 +70,7 @@ if __name__ == "__main__":
 
                 if not opts.copy_prefix:
                     parser.print_help()
-                    raise ValueError("COPY command does not have URL prefix")
+                    raise ValueError("COPY command does not know from where to copy. Define copy-prefix-url")
                 if len(args) == 2:
                     cmd = "curl %s/%s > %s" % (opts.copy_prefix, args[0], args[1])
                     print ("# %s" % line)
